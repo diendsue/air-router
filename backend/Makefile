@@ -1,16 +1,23 @@
-# Makefile for go-web-project
+# Makefile for air_router
+CURRENT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+COMMAND_PREFIX := cd $(CURRENT_DIR) &&
+GOMOD    := GO111MODULE=on
+GOPXY    := GOPROXY=https://goproxy.cn,direct
+GOSUB    := GOSUMDB=sum.golang.google.cn
+# Enable CGO for SQLite3 support
+GOCGO    := CGO_ENABLED=1
+GO       := $(COMMAND_PREFIX) $(GOMOD) $(GOPXY) $(GOSUB) $(GOCGO) go
+FILES    := $(shell find $(CURRENT_DIR) -name '*.go' -type f -not -name '*.pb.go' -not -name '*_generated.go' -not -name '*_test.go')
+TESTS    := $(shell find $(CURRENT_DIR) -name '*.go' -type f -not -name '*.pb.go' -not -name '*_generated.go' -name '*_test.go')
 
 # Go parameters
-GOCMD=go
+GOCMD=$(GO)
 GOBUILD=$(GOCMD) build
 GORUN=$(GOCMD) run
 GOCLEAN=$(GOCMD) clean
 GOMOD=$(GOCMD) mod
 GOGET=$(GOCMD) get
 
-# Enable CGO for SQLite3 support
-CGO_ENABLED=1
-export CGO_ENABLED
 
 # Binary name and output
 BINARY_NAME=air_router
@@ -23,7 +30,7 @@ BUILD_TIME=$(shell date +%FT%T%z)
 GIT_COMMIT=$(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 # Build flags
-LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.GitCommit=$(GIT_COMMIT)"
+LDFLAGS=-trimpath -ldflags "-s -w -X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.GitCommit=$(GIT_COMMIT)"
 
 .PHONY: all build clean update run restart help
 
@@ -66,28 +73,12 @@ dev:
 	@command -v air >/dev/null 2>&1 || { echo "air not installed. Install with: go install github.com/cosmtrek/air@latest"; exit 1; }
 	@air
 
-
-## test: Run tests
-test:
-	@echo "Running tests..."
-	@$(GOCMD) test -v ./...
-
-## coverage: Run tests with coverage
-coverage:
-	@echo "Running tests with coverage..."
-	@$(GOCMD) test -coverprofile=coverage.out ./...
-	@$(GOCMD) tool cover -html=coverage.out -o coverage.html
-	@echo "Coverage report generated: coverage.html"
-
-## vet: Run go vet
-vet:
-	@echo "Running go vet..."
-	@$(GOCMD) vet ./...
-
 ## fmt: Format code
 fmt:
 	@echo "Formatting code..."
-	@$(GOCMD) fmt ./...
+	@command -v goimports >/dev/null 2>&1 || { echo "goimports not installed. Install with: go install golang.org/x/tools/cmd/goimports@latest"; exit 1; }
+	# @$(GOCMD) fmt ./...
+	@goimports -l -w $(FILES) $(TESTS)
 
 ## lint: Run golangci-lint (requires golangci-lint installed)
 lint:
@@ -99,6 +90,7 @@ lint:
 install-deps:
 	@echo "Installing development tools..."
 	@$(GOGET) -u github.com/cosmtrek/air@latest
+	@$(GOGET) -u golang.org/x/tools/cmd/goimports@latest
 	@echo "Dev tools installed"
 
 ## pack: Build for multiple platforms (needs proper CGO cross-compilation setup)

@@ -93,7 +93,8 @@ function showToast(message, type = 'success') {
 }
 
 // Show confirm dialog
-function showConfirm(message, title = '确认') {
+function showConfirm(message, title = null) {
+    title = title || window.i18n.t('confirm');
     return new Promise((resolve) => {
         const dialog = document.getElementById('confirmDialog');
         const confirmMessage = document.getElementById('confirmMessage');
@@ -217,7 +218,7 @@ function renderPagination() {
     // Previous button
     const prevBtn = document.createElement('button');
     prevBtn.className = 'pagination-btn';
-    prevBtn.textContent = '上一页';
+    prevBtn.textContent = window.i18n.t('previous');
     prevBtn.disabled = currentPage === 1;
     prevBtn.onclick = () => {
         if (currentPage > 1) {
@@ -261,7 +262,7 @@ function renderPagination() {
     // Next button
     const nextBtn = document.createElement('button');
     nextBtn.className = 'pagination-btn';
-    nextBtn.textContent = '下一页';
+    nextBtn.textContent = window.i18n.t('next');
     nextBtn.disabled = currentPage === totalPages;
     nextBtn.onclick = () => {
         if (currentPage < totalPages) {
@@ -274,7 +275,11 @@ function renderPagination() {
     // Page info
     const pageInfo = document.createElement('span');
     pageInfo.className = 'pagination-info';
-    pageInfo.textContent = `第 ${currentPage} / ${totalPages} 页，共 ${totalItems} 条`;
+    pageInfo.textContent = window.i18n.t('pageInfo', {
+        currentPage,
+        totalPages,
+        totalItems
+    });
     paginationContainer.appendChild(pageInfo);
 
     pagination.appendChild(paginationContainer);
@@ -301,15 +306,17 @@ function createPageButton(page) {
 function copyToText(elementId, text) {
     navigator.clipboard.writeText(text).then(() => {
         const element = document.getElementById(elementId);
-        const originalText = element.textContent;
-        element.textContent = '已复制';
-        setTimeout(() => {
-            element.textContent = originalText;
-        }, 1500);
-        showToast('已复制到剪贴板', 'success');
+        if (element) {
+            const originalText = element.textContent;
+            element.textContent = window.i18n.t('copied');
+            setTimeout(() => {
+                element.textContent = originalText;
+            }, 1500);
+        }
+        showToast(window.i18n.t('copiedToClipboard'), 'success');
     }).catch(err => {
         console.error('Copy failed:', err);
-        showToast('复制失败', 'error');
+        showToast(window.i18n.t('copyFailed'), 'error');
     });
 }
 
@@ -498,7 +505,7 @@ function createAccount(accountData) {
             return response.json();
         } else {
             const errorData = await response.json();
-            throw new Error(errorData.error || '创建账户失败');
+            throw new Error(errorData.error || window.i18n.t('createFailed'));
         }
     })
     .then(account => {
@@ -507,11 +514,11 @@ function createAccount(accountData) {
         currentPage = 1; // Go to first page after creating
         loadAccounts();
         document.getElementById('accountModal').style.display = 'none';
-        showToast('账户创建成功！', 'success');
+        showToast(window.i18n.t('createSuccess'), 'success');
     })
     .catch(error => {
         console.error('Error creating account:', error);
-        showToast('创建账户失败: ' + error.message, 'error');
+        showToast(window.i18n.t('createAccountFailed', { error: error.message }), 'error');
     });
 }
 
@@ -556,7 +563,7 @@ function updateAccount(id, accountData) {
             return response.json();
         } else {
             const errorData = await response.json();
-            throw new Error(errorData.error || '更新账户失败');
+            throw new Error(errorData.error || window.i18n.t('updateFailed'));
         }
     })
     .then(account => {
@@ -568,7 +575,7 @@ function updateAccount(id, accountData) {
     })
     .catch(error => {
         console.error('Error updating account:', error);
-        showToast(window.i18n.t('updateAccountFailed') + ' ' + error.message, 'error');
+        showToast(window.i18n.t('updateAccountFailed', { error: error.message }), 'error');
     });
 }
 
@@ -590,7 +597,7 @@ async function deleteAccount(id) {
         })
         .catch(error => {
             console.error('Error deleting account:', error);
-            showToast(window.i18n.t('deleteAccountFailed') + ' ' + error.message, 'error');
+            showToast(window.i18n.t('deleteAccountFailed', { error: error.message }), 'error');
         });
     }
 }
@@ -615,7 +622,7 @@ function toggleAccount(id) {
     })
     .catch(error => {
         console.error('Error toggling account:', error);
-        showToast(window.i18n.t('toggleStatusFailed') + ' ' + error.message, 'error');
+        showToast(window.i18n.t('toggleStatusFailed', { error: error.message }), 'error');
     });
 }
 

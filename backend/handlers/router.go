@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	air_router_db "air_router/db"
+
 	"github.com/gin-gonic/gin"
-	go_web_project_db "go-web-project/db"
 )
 
-func SetupRouter(indexHandler *IndexHandler, accountHandler *AccountHandler, proxyHandler *ProxyHandler, frontendPath string) *gin.Engine {
+// SetupWebRouter creates the web interface router with frontend and API routes
+func SetupWebRouter(indexHandler *IndexHandler, accountHandler *AccountHandler, proxyHandler *ProxyHandler, frontendPath string) *gin.Engine {
 	router := gin.Default()
 
 	// Serve static files
@@ -37,6 +39,13 @@ func SetupRouter(indexHandler *IndexHandler, accountHandler *AccountHandler, pro
 		api.POST("/debug/models/reload", proxyHandler.HandleReloadModels)
 	}
 
+	return router
+}
+
+// SetupProxyRouter creates the proxy API router for /v1 routes
+func SetupProxyRouter(proxyHandler *ProxyHandler) *gin.Engine {
+	router := gin.Default()
+
 	// Proxy routes - /v1/:path
 	router.Any("/v1/*path", proxyHandler.HandleProxy)
 
@@ -49,7 +58,7 @@ type Handlers struct {
 	ProxyHandler   *ProxyHandler
 }
 
-func NewHandlers(frontendPath string, accountDB *go_web_project_db.AccountDB) *Handlers {
+func NewHandlers(frontendPath string, accountDB *air_router_db.AccountDB) *Handlers {
 	return &Handlers{
 		IndexHandler:   NewIndexHandler(frontendPath),
 		AccountHandler: NewAccountHandler(accountDB),

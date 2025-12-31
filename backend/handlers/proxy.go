@@ -7,9 +7,9 @@ import (
 	"log"
 	"net/http"
 
-	"go-web-project/cache"
-	"go-web-project/db"
-	"go-web-project/services"
+	"air_router/cache"
+	"air_router/db"
+	"air_router/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,7 +58,7 @@ func (h *ProxyHandler) HandleProxy(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read request body"})
 		return
 	}
-	log.Printf("[Proxy /v1/%s] Request body: %s", path, string(bodyBytes))
+	// log.Printf("[Proxy /v1/%s] Request body: %s", path, string(bodyBytes))
 
 	// Extract model id
 	modelID := extractModelID(bodyBytes)

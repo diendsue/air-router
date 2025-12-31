@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"net/http"
 
-	"go-web-project/models"
+	"air_router/models"
 )
 
 // CreateProxyRequest creates an HTTP request for proxying

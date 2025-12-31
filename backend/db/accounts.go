@@ -1,9 +1,9 @@
 package db
 
 import (
+	"air_router/models"
 	"database/sql"
 	"fmt"
-	"go-web-project/models"
 	"time"
 )
 

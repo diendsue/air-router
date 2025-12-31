@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"air_router/db"
+	"air_router/models"
+
 	"github.com/gin-gonic/gin"
-	"go-web-project/db"
-	"go-web-project/models"
 )
 
 type AccountHandler struct {

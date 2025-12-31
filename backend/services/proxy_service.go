@@ -1,16 +1,31 @@
 package services
 
 import (
+	"crypto/rand"
 	"io"
 	"log"
-	"math/rand"
+	"math/big"
 	"net/http"
+	"sync/atomic"
+
+	"air_router/cache"
+	"air_router/models"
+	"air_router/utils"
 
 	"github.com/gin-gonic/gin"
-	"go-web-project/cache"
-	"go-web-project/models"
-	"go-web-project/utils"
 )
+
+// Global counter for randomized account selection
+var globalAccountCounter uint64
+
+// Threshold for resetting the counter to avoid overflow
+const counterResetThreshold = (1 << 63) - 100000
+
+func init() {
+	// Initialize with a secure random number between 10w and 20w
+	n, _ := rand.Int(rand.Reader, big.NewInt(100000))
+	globalAccountCounter = 100000 + n.Uint64()
+}
 
 // ProxyService handles proxy request routing and retry logic
 type ProxyService struct {
@@ -64,14 +79,21 @@ func (s *ProxyService) TryWithRetryModel(c *gin.Context, path string, modelID st
 		maxAttempts = len(accounts)
 	}
 
-	// Random start position
-	startIndex := rand.Intn(100003)
-
 	var lastResp *http.Response
 	var lastRespBody []byte
 
 	for attempt := 0; attempt < maxAttempts; attempt++ {
-		accountIndex := (startIndex + attempt) % len(accounts)
+		// Atomically increment and get current value
+		current := atomic.AddUint64(&globalAccountCounter, 1)
+
+		// Reset if approaching int64 limit to avoid overflow
+		if current >= counterResetThreshold {
+			n, _ := rand.Int(rand.Reader, big.NewInt(100000))
+			atomic.StoreUint64(&globalAccountCounter, 100000+n.Uint64())
+			current = globalAccountCounter
+		}
+
+		accountIndex := current % uint64(len(accounts))
 		account := accounts[accountIndex]
 
 		log.Printf("[ProxyService] Attempt %d/%d with account %s (ID: %d)", attempt+1, maxAttempts, account.Name, account.ID)

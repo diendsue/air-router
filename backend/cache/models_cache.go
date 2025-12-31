@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"go-web-project/db"
-	"go-web-project/models"
-	"go-web-project/utils"
+	"air_router/db"
+	"air_router/models"
+	"air_router/utils"
 )
 
 // ModelInfo represents a model information

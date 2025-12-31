@@ -8,8 +8,9 @@ import (
 	"sort"
 	"strings"
 
+	"air_router/cache"
+
 	"github.com/gin-gonic/gin"
-	"go-web-project/cache"
 )
 
 // HandleModels handles GET /v1/models (returns cached model list)

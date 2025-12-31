@@ -8,9 +8,10 @@ import (
 	"path/filepath"
 	"time"
 
+	air_router_db "air_router/db"
+	air_router_handlers "air_router/handlers"
+
 	"github.com/gin-gonic/gin"
-	go_web_project_db "go-web-project/db"
-	go_web_project_handlers "go-web-project/handlers"
 )
 
 var (
@@ -30,7 +31,8 @@ func main() {
 	// Parse command-line flags
 	configDir := flag.String("config", "./data", "Directory for data files")
 	frontendPath := flag.String("path", "../frontend", "Path to frontend directory")
-	port := flag.String("port", "8080", "Server port")
+	port := flag.String("port", "8080", "Proxy API port")
+	webPort := flag.String("web-port", "9000", "Web interface port")
 	flag.Parse()
 
 	// Initialize configuration directory
@@ -48,26 +50,36 @@ func main() {
 	}
 
 	// Initialize database
-	dbConn, err := go_web_project_db.InitDB(dbPath)
+	dbConn, err := air_router_db.InitDB(dbPath)
 	if err != nil {
 		log.Fatal("Error initializing database: ", err)
 	}
 	defer dbConn.Close()
 
 	// Initialize account database handler
-	accountDB := &go_web_project_db.AccountDB{DB: dbConn}
+	accountDB := &air_router_db.AccountDB{DB: dbConn}
 
 	// Initialize handlers
-	handlers := go_web_project_handlers.NewHandlers(absFrontendPath, accountDB)
+	handlers := air_router_handlers.NewHandlers(absFrontendPath, accountDB)
 
-	// Setup router
-	router := go_web_project_handlers.SetupRouter(handlers.IndexHandler, handlers.AccountHandler, handlers.ProxyHandler, absFrontendPath)
+	// Setup routers
+	webRouter := air_router_handlers.SetupWebRouter(handlers.IndexHandler, handlers.AccountHandler, handlers.ProxyHandler, absFrontendPath)
+	proxyRouter := air_router_handlers.SetupProxyRouter(handlers.ProxyHandler)
 
-	// Start server
-	addr := ":" + *port
-	printStartupInfo(addr, absFrontendPath, dbPath)
-	if err := router.Run(addr); err != nil {
-		log.Fatal(err)
+	// Start web server
+	webAddr := ":" + *webPort
+	go func() {
+		log.Printf("Web server starting on http://localhost%s", webAddr)
+		if err := webRouter.Run(webAddr); err != nil {
+			log.Fatal("Web server error: ", err)
+		}
+	}()
+
+	// Start proxy server
+	proxyAddr := ":" + *port
+	printStartupInfo(webAddr, proxyAddr, absFrontendPath, dbPath)
+	if err := proxyRouter.Run(proxyAddr); err != nil {
+		log.Fatal("Proxy server error: ", err)
 	}
 }
 
@@ -80,7 +92,7 @@ func initConfigDir(dir string) error {
 }
 
 // printStartupInfo prints server startup information
-func printStartupInfo(addr, frontendPath, dbPath string) {
+func printStartupInfo(webAddr, proxyAddr, frontendPath, dbPath string) {
 	log.Println("================================")
 	log.Println("  AI Router Server")
 	log.Println("================================")
@@ -88,8 +100,12 @@ func printStartupInfo(addr, frontendPath, dbPath string) {
 	log.Printf("  Build:      %s", BuildTime)
 	log.Printf("  Git Commit: %s", GitCommit)
 	log.Println("--------------------------------")
-	log.Printf("  Address:    http://localhost%s", addr)
+	log.Printf("  Web Interface:    http://127.0.0.1%s", webAddr)
+	log.Println("  Web endpoints:     /, /debug, /api/*")
 	log.Printf("  Frontend:   %s", frontendPath)
 	log.Printf("  Database:   %s", dbPath)
+	log.Println("--------------------------------")
+	log.Printf("  Proxy API:        http://127.0.0.1%s", proxyAddr)
+	log.Println("  Proxy endpoints:   /v1/*")
 	log.Println("================================")
 }

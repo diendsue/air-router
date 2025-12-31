@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"strings"
 
-	"go-web-project/models"
+	"air_router/models"
 )
 
 // BuildTargetURL constructs the target API URL from account and path
