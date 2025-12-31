@@ -38,6 +38,7 @@ func createTables(conn *sql.DB) error {
 		base_url TEXT NOT NULL,
 		api_key TEXT NOT NULL,
 		enabled BOOLEAN NOT NULL DEFAULT true,
+		claude_available INTEGER NOT NULL DEFAULT 0,
 		ext TEXT,
 		updated_at INTEGER NOT NULL DEFAULT 0
 	);`

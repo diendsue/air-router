@@ -30,6 +30,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelBtn = document.getElementById('cancelBtn');
     const saveBtn = document.getElementById('saveBtn');
 
+    // Toggle switch click handler - click switch area to toggle checkbox
+    document.querySelectorAll('.toggle-switch').forEach(sw => {
+        sw.addEventListener('click', (e) => {
+            // Only handle if not clicking directly on the input
+            if (e.target.tagName !== 'INPUT') {
+                const checkbox = document.getElementById(sw.dataset.toggle);
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                }
+            }
+        });
+    });
+
     addBtn.addEventListener('click', () => {
         clearForm();
         document.getElementById('name').disabled = false;
@@ -406,6 +419,7 @@ function createAccountCard(account) {
     const name = escapeHtml(account.name || window.i18n.t('unknown'));
     const baseUrl = escapeHtml(account.base_url || '');
     const enabled = Boolean(account.enabled);
+    const claudeAvailable = Boolean(account.claude_available);
     const accountId = parseInt(account.id) || 0;
     const updatedAt = formatTimestamp(account.updated_at || 0);
 
@@ -419,10 +433,11 @@ function createAccountCard(account) {
     const deleteText = window.i18n.t('delete');
     const enableText = window.i18n.t('enable');
     const disableText = window.i18n.t('disable');
+    const claudeBadgeText = window.i18n.t('claude');
 
     card.innerHTML = `
         <div class="card-header">
-            <h3 class="card-title">${name}</h3>
+            <h3 class="card-title">${name}${claudeAvailable ? `<span class="claude-badge">${claudeBadgeText}</span>` : ''}</h3>
             <span class="card-status ${enabled ? 'enabled' : 'disabled'}">
                 ${enabled ? activeText : inactiveText}
             </span>
@@ -478,6 +493,7 @@ function handleFormSubmit(event) {
         name: document.getElementById('name').value,
         base_url: document.getElementById('base_url').value.trim(),
         api_key: document.getElementById('api_key').value.trim(),
+        claude_available: document.getElementById('claude_available').checked,
         ext: document.getElementById('ext').value,
         enabled: true // Default to enabled
     };
@@ -533,6 +549,7 @@ function editAccount(id) {
             document.getElementById('name').disabled = true;
             document.getElementById('base_url').value = account.base_url;
             document.getElementById('api_key').value = account.api_key;
+            document.getElementById('claude_available').checked = account.claude_available || false;
             document.getElementById('ext').value = account.ext || '';
 
             // Set editing mode

@@ -99,9 +99,10 @@ func (h *ProxyHandler) HandleProxy(c *gin.Context) {
 
 	// No accounts found for this model
 	c.JSON(http.StatusNotFound, gin.H{
+		"type": "error",
 		"error": map[string]interface{}{
 			"message": fmt.Sprintf("No accounts found for model '%s'", modelID),
-			"type":    "invalid_request_error",
+			"type":    "not_found_error",
 			"param":   nil,
 			"code":    nil,
 		},

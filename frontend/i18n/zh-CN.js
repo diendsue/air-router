@@ -24,6 +24,7 @@ const zhCN = {
   delete: "删除",
   enable: "启用",
   disable: "禁用",
+  claude: "Claude",
 
   // Form Labels
   name: "名称",
@@ -33,6 +34,7 @@ const zhCN = {
   baseURLError: "URL必须以http://或https://开头",
   apiKey: "API密钥",
   apiKeyPlaceholder: "sk-...",
+  claudeAvailable: "Claude可用",
   extInfo: "扩展信息",
   extInfoPlaceholder: "可选的扩展信息",
 

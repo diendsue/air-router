@@ -205,3 +205,24 @@ func GetAllModelInfos() map[string]*ModelInfo {
 	defer GlobalModelInfoCache.mu.RUnlock()
 	return GlobalModelInfoCache.modelInfos
 }
+
+// GetAllAccounts returns all unique accounts from the models cache
+func GetAllAccounts() []models.Account {
+	GlobalModelsCache.mu.RLock()
+	defer GlobalModelsCache.mu.RUnlock()
+
+	// Use a map to deduplicate accounts by ID
+	seen := make(map[int]models.Account)
+	for _, accounts := range GlobalModelsCache.models {
+		for _, acc := range accounts {
+			seen[acc.ID] = acc
+		}
+	}
+
+	// Convert map to slice
+	result := make([]models.Account, 0, len(seen))
+	for _, acc := range seen {
+		result = append(result, acc)
+	}
+	return result
+}

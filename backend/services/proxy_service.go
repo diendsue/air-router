@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/big"
 	"net/http"
+	"strings"
 	"sync/atomic"
 
 	"air_router/cache"
@@ -20,6 +21,12 @@ var globalAccountCounter uint64
 
 // Threshold for resetting the counter to avoid overflow
 const counterResetThreshold = (1 << 63) - 100000
+
+// Claude API paths that require special handling
+var claudePaths = []string{"/messages", "/messages/batches", "/files", "/skills"}
+
+const defaultAnthropicVersion = "2023-06-01"
+const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 
 func init() {
 	// Initialize with a secure random number between 10w and 20w
@@ -39,11 +46,22 @@ func NewProxyService() *ProxyService {
 	}
 }
 
+// IsClaudeAPI checks if the path is a Claude API endpoint
+func IsClaudeAPI(path string) bool {
+	for _, claudePath := range claudePaths {
+		if strings.Contains(path, claudePath) {
+			return true
+		}
+	}
+	return false
+}
+
 // TryWithAccount attempts to forward request to a specific account
 func (s *ProxyService) TryWithAccount(c *gin.Context, account models.Account, path string, bodyBytes []byte, headers http.Header) (*http.Response, bool, []byte) {
 	targetURL := utils.BuildTargetURL(account, path)
 
-	req, err := utils.CreateProxyRequest(c.Request.Method, targetURL, bodyBytes, account, headers)
+	isClaude := IsClaudeAPI(path)
+	req, err := utils.CreateProxyRequest(c.Request.Method, targetURL, bodyBytes, account, headers, isClaude)
 	if err != nil {
 		return nil, false, nil
 	}
@@ -71,7 +89,28 @@ func (s *ProxyService) TryWithRetryModel(c *gin.Context, path string, modelID st
 		return false, nil, nil
 	}
 
-	log.Printf("[ProxyService] Model: %s, Accounts: %d", modelID, len(accounts))
+	// Check if this is a Claude API request
+	isClaude := IsClaudeAPI(path)
+	if isClaude {
+		log.Printf("[ProxyService] Claude API detected, filtering claude_available accounts")
+	}
+
+	// Filter accounts for Claude API if needed
+	var availableAccounts []models.Account
+	if isClaude {
+		for _, acc := range accounts {
+			if acc.ClaudeAvailable {
+				availableAccounts = append(availableAccounts, acc)
+			}
+		}
+		if len(availableAccounts) == 0 {
+			log.Printf("[ProxyService] No Claude available accounts found for model %s", modelID)
+			return false, nil, nil
+		}
+		accounts = availableAccounts
+	}
+
+	log.Printf("[ProxyService] Model: %s, Accounts: %d, IsClaude: %v", modelID, len(accounts), isClaude)
 
 	// Retry at most 2 times
 	maxAttempts := 2

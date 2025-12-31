@@ -48,8 +48,8 @@ func (a *AccountDB) CreateAccount(account models.Account) (int64, error) {
 	// Set updated_at to current time in milliseconds
 	updatedAt := time.Now().UnixMilli()
 
-	query := `INSERT INTO accounts (name, base_url, api_key, enabled, ext, updated_at) VALUES (?, ?, ?, ?, ?, ?)`
-	result, err := a.DB.Exec(query, account.Name, account.BaseURL, account.APIKey, account.Enabled, account.Ext, updatedAt)
+	query := `INSERT INTO accounts (name, base_url, api_key, enabled, claude_available, ext, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`
+	result, err := a.DB.Exec(query, account.Name, account.BaseURL, account.APIKey, account.Enabled, account.ClaudeAvailable, account.Ext, updatedAt)
 	if err != nil {
 		return 0, err
 	}
@@ -64,7 +64,7 @@ func (a *AccountDB) CreateAccount(account models.Account) (int64, error) {
 
 // GetAccounts retrieves all accounts from the database
 func (a *AccountDB) GetAccounts() ([]models.Account, error) {
-	query := `SELECT id, name, base_url, api_key, enabled, ext, updated_at FROM accounts`
+	query := `SELECT id, name, base_url, api_key, enabled, claude_available, ext, updated_at FROM accounts`
 	rows, err := a.DB.Query(query)
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (a *AccountDB) GetAccounts() ([]models.Account, error) {
 	var accounts []models.Account
 	for rows.Next() {
 		var account models.Account
-		err := rows.Scan(&account.ID, &account.Name, &account.BaseURL, &account.APIKey, &account.Enabled, &account.Ext, &account.UpdatedAt)
+		err := rows.Scan(&account.ID, &account.Name, &account.BaseURL, &account.APIKey, &account.Enabled, &account.ClaudeAvailable, &account.Ext, &account.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +86,7 @@ func (a *AccountDB) GetAccounts() ([]models.Account, error) {
 
 // GetEnabledAccounts retrieves all enabled accounts from the database
 func (a *AccountDB) GetEnabledAccounts() ([]models.Account, error) {
-	query := `SELECT id, name, base_url, api_key, enabled, ext, updated_at FROM accounts WHERE enabled = 1`
+	query := `SELECT id, name, base_url, api_key, enabled, claude_available, ext, updated_at FROM accounts WHERE enabled = 1`
 	rows, err := a.DB.Query(query)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (a *AccountDB) GetEnabledAccounts() ([]models.Account, error) {
 	var accounts []models.Account
 	for rows.Next() {
 		var account models.Account
-		err := rows.Scan(&account.ID, &account.Name, &account.BaseURL, &account.APIKey, &account.Enabled, &account.Ext, &account.UpdatedAt)
+		err := rows.Scan(&account.ID, &account.Name, &account.BaseURL, &account.APIKey, &account.Enabled, &account.ClaudeAvailable, &account.Ext, &account.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -109,8 +109,8 @@ func (a *AccountDB) GetEnabledAccounts() ([]models.Account, error) {
 // GetAccount retrieves a specific account by ID
 func (a *AccountDB) GetAccount(id int) (models.Account, error) {
 	var account models.Account
-	query := `SELECT id, name, base_url, api_key, enabled, ext, updated_at FROM accounts WHERE id = ?`
-	err := a.DB.QueryRow(query, id).Scan(&account.ID, &account.Name, &account.BaseURL, &account.APIKey, &account.Enabled, &account.Ext, &account.UpdatedAt)
+	query := `SELECT id, name, base_url, api_key, enabled, claude_available, ext, updated_at FROM accounts WHERE id = ?`
+	err := a.DB.QueryRow(query, id).Scan(&account.ID, &account.Name, &account.BaseURL, &account.APIKey, &account.Enabled, &account.ClaudeAvailable, &account.Ext, &account.UpdatedAt)
 	if err != nil {
 		return account, err
 	}
@@ -132,8 +132,8 @@ func (a *AccountDB) UpdateAccount(account models.Account) error {
 	// Set updated_at to current time in milliseconds
 	updatedAt := time.Now().UnixMilli()
 
-	query := `UPDATE accounts SET name = ?, base_url = ?, api_key = ?, enabled = ?, ext = ?, updated_at = ? WHERE id = ?`
-	_, err = a.DB.Exec(query, account.Name, account.BaseURL, account.APIKey, account.Enabled, account.Ext, updatedAt, account.ID)
+	query := `UPDATE accounts SET name = ?, base_url = ?, api_key = ?, enabled = ?, claude_available = ?, ext = ?, updated_at = ? WHERE id = ?`
+	_, err = a.DB.Exec(query, account.Name, account.BaseURL, account.APIKey, account.Enabled, account.ClaudeAvailable, account.Ext, updatedAt, account.ID)
 	return err
 }
 
@@ -141,7 +141,7 @@ func (a *AccountDB) UpdateAccount(account models.Account) error {
 func (a *AccountDB) GetPaginatedAccounts(page, pageSize int, search string) ([]models.Account, int, error) {
 	// Build query with optional search condition
 	countQuery := `SELECT COUNT(*) FROM accounts`
-	query := `SELECT id, name, base_url, api_key, enabled, ext, updated_at FROM accounts`
+	query := `SELECT id, name, base_url, api_key, enabled, claude_available, ext, updated_at FROM accounts`
 	var args []interface{}
 
 	if search != "" {
@@ -183,7 +183,7 @@ func (a *AccountDB) GetPaginatedAccounts(page, pageSize int, search string) ([]m
 	var accounts []models.Account
 	for rows.Next() {
 		var account models.Account
-		err := rows.Scan(&account.ID, &account.Name, &account.BaseURL, &account.APIKey, &account.Enabled, &account.Ext, &account.UpdatedAt)
+		err := rows.Scan(&account.ID, &account.Name, &account.BaseURL, &account.APIKey, &account.Enabled, &account.ClaudeAvailable, &account.Ext, &account.UpdatedAt)
 		if err != nil {
 			return nil, 0, err
 		}

@@ -24,6 +24,7 @@ const enUS = {
   delete: "Delete",
   enable: "Enable",
   disable: "Disable",
+  claude: "Claude",
 
   // Form Labels
   name: "Name",
@@ -33,6 +34,7 @@ const enUS = {
   baseURLError: "URL must start with http:// or https://",
   apiKey: "API Key",
   apiKeyPlaceholder: "sk-...",
+  claudeAvailable: "Claude Available",
   extInfo: "Extended Info",
   extInfoPlaceholder: "Optional extended information",
 
