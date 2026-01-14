@@ -9,6 +9,26 @@ let isLoading = false; // Prevent duplicate requests
 
 // DOM elements
 document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+
+            // Initialize model management when switching to All in One tab
+            if (btn.dataset.tab === 'allinone') {
+                // Small delay to ensure DOM is updated
+                setTimeout(() => {
+                    if (typeof initModelManagement === 'function') {
+                        initModelManagement();
+                    }
+                }, 100);
+            }
+        });
+    });
+
     // Wait for i18n to be ready before loading accounts
     function loadAccountsWhenReady() {
         if (window.i18n && window.i18n.getLanguage) {
@@ -175,7 +195,7 @@ function loadAccounts() {
             grid.innerHTML = '';
 
             // Update pagination state - ensure accounts is an array
-            const accounts = Array.isArray(data.accounts) ? data.accounts :
+            const accounts = Array.isArray(data.data) ? data.data :
                              (Array.isArray(data) ? data : []);
             totalItems = parseInt(data.total) || 0;
             totalPages = parseInt(data.total_pages) || 1;

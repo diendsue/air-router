@@ -8,7 +8,7 @@ import (
 )
 
 // SkipTLSVerify determines whether to skip TLS certificate verification
-var SkipTLSVerify = os.Getenv("SKIP_TLS_VERIFY") != "false" // Default: true
+var SkipTLSVerify = os.Getenv("SKIP_TLS_VERIFY") == "true" // Default: false (secure)
 
 // HTTPClient is the shared HTTP client for the application
 var HTTPClient *http.Client
@@ -26,14 +26,4 @@ func init() {
 		Transport: transport,
 		Timeout:   0, // No timeout to support long connections and streaming
 	}
-}
-
-// InitHTTPClient initializes the HTTP client
-func InitHTTPClient() *http.Client {
-	return HTTPClient
-}
-
-// GetHTTPClient returns the shared HTTP client
-func GetHTTPClient() *http.Client {
-	return HTTPClient
 }

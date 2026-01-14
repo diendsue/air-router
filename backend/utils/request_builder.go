@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"net/http"
 
+	"air_router/constants"
 	"air_router/models"
 )
-
-const defaultAnthropicVersion = "2023-06-01"
-const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 
 // CreateProxyRequest creates an HTTP request for proxying
 // isClaude indicates whether this is a Claude API request
@@ -33,7 +31,7 @@ func CreateProxyRequest(method, targetURL string, bodyBytes []byte, account mode
 		// Set or get anthropic-version header
 		anthropicVersion := headers.Get("anthropic-version")
 		if anthropicVersion == "" {
-			anthropicVersion = defaultAnthropicVersion
+			anthropicVersion = constants.DefaultAnthropicVersion
 		}
 		req.Header.Set("anthropic-version", anthropicVersion)
 	} else {
@@ -42,7 +40,7 @@ func CreateProxyRequest(method, targetURL string, bodyBytes []byte, account mode
 
 	// Always set User-Agent
 	if req.Header.Get("User-Agent") == "" {
-		req.Header.Set("User-Agent", userAgent)
+		req.Header.Set("User-Agent", constants.DefaultUserAgent)
 	}
 
 	return req, nil

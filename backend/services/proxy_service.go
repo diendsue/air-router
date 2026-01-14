@@ -7,11 +7,11 @@ import (
 	"math/big"
 	"net/http"
 	"strings"
-	"sync/atomic"
 
 	"air_router/cache"
 	"air_router/models"
 	"air_router/utils"
+	"air_router/utils/common"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,14 +19,13 @@ import (
 // Global counter for randomized account selection
 var globalAccountCounter uint64
 
-// Threshold for resetting the counter to avoid overflow
-const counterResetThreshold = (1 << 63) - 100000
+// GetGlobalAccountCounter returns the global account counter for external access
+func GetGlobalAccountCounter() *uint64 {
+	return &globalAccountCounter
+}
 
 // Claude API paths that require special handling
 var claudePaths = []string{"/messages", "/messages/batches", "/files", "/skills"}
-
-const defaultAnthropicVersion = "2023-06-01"
-const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 
 func init() {
 	// Initialize with a secure random number between 10w and 20w
@@ -122,17 +121,8 @@ func (s *ProxyService) TryWithRetryModel(c *gin.Context, path string, modelID st
 	var lastRespBody []byte
 
 	for attempt := 0; attempt < maxAttempts; attempt++ {
-		// Atomically increment and get current value
-		current := atomic.AddUint64(&globalAccountCounter, 1)
-
-		// Reset if approaching int64 limit to avoid overflow
-		if current >= counterResetThreshold {
-			n, _ := rand.Int(rand.Reader, big.NewInt(100000))
-			atomic.StoreUint64(&globalAccountCounter, 100000+n.Uint64())
-			current = globalAccountCounter
-		}
-
-		accountIndex := current % uint64(len(accounts))
+		// Use common function to get random index and handle counter reset
+		accountIndex := common.GetRandomIndex(len(accounts))
 		account := accounts[accountIndex]
 
 		log.Printf("[ProxyService] Attempt %d/%d with account %s (ID: %d)", attempt+1, maxAttempts, account.Name, account.ID)

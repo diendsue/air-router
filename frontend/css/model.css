@@ -1,0 +1,265 @@
+/* Model-related styles */
+
+/* Associated model checkboxes */
+.model #assModelIdsContainer {
+    max-height: 250px;
+    overflow-y: auto;
+    border: 2px solid #e5e5e7;
+    border-radius: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Model card associated models - max two lines with hover expansion */
+.card-field.ass-models-field {
+    position: relative;
+}
+
+.model-card-ass-models-container {
+    position: relative;
+}
+
+.model-card-ass-models {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+    max-height: 2.8em; /* 2 lines * 1.4 line-height */
+    transition: all 0.2s ease;
+}
+
+.card-field.ass-models-field:hover .model-card-ass-models {
+    -webkit-line-clamp: unset;
+    max-height: none;
+    background: #f8fafc;
+    border-radius: 6px;
+    padding: 4px;
+    margin: -4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+/* Clickable model ID tags */
+.model-tag.clickable-model-id {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.model-tag.clickable-model-id:hover {
+    background: #3b82f6;
+    color: white;
+    transform: scale(1.05);
+}
+
+.model-tag.clickable-model-id:active {
+    transform: scale(0.95);
+}
+
+/* Search and select container */
+.model .search-and-select-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+/* Model search input in modal */
+.model #assModelIdsContainer .search-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #e5e5e7;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    background: white;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.model #assModelIdsContainer .search-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Select all button */
+.model .select-all-btn {
+    padding: 12px 16px;
+    border: 2px solid #e5e5e7;
+    border-radius: 10px;
+    background: white;
+    color: #667eea;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.model .select-all-btn:hover {
+    background: #f1f5f9;
+    border-color: #667eea;
+    transform: translateY(-1px);
+}
+
+.model .select-all-btn:active {
+    transform: translateY(0);
+}
+
+.model .checkbox-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    background: white;
+    border: 1px solid #e2e8f0;
+}
+
+.model .checkbox-item:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+}
+
+.model .checkbox-item input[type="checkbox"] {
+    position: relative;
+    padding: 8px;
+    width: 8px;
+    height: 8px;
+    margin-right: 10px;
+    appearance: none;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: white;
+}
+
+.model .checkbox-item input[type="checkbox"]:checked {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+}
+
+.model .checkbox-item input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.model .checkbox-item input[type="checkbox"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.model .checkbox-item label {
+    font-size: 13px;
+    color: #334155;
+    cursor: pointer;
+    flex: 1;
+    font-weight: 500;
+}
+
+/* Scrollbar styling */
+.model #assModelIdsContainer::-webkit-scrollbar {
+    width: 8px;
+}
+
+.model #assModelIdsContainer::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.model #assModelIdsContainer::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.model #assModelIdsContainer::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Model form group select */
+.model .form-group select {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #e5e5e7;
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: inherit;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 20px center;
+    padding-right: 50px;
+}
+
+.model .form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1), 0 4px 20px rgba(0, 0, 0, 0.12);
+    background: white;
+}
+
+.model .form-group select option {
+    padding: 10px 15px;
+    font-size: 15px;
+    color: #1d1d1f;
+}
+
+/* Custom mode styles */
+.custom-mode-item {
+    background: #f0f9ff;
+    border: 2px solid #0ea5e9;
+    border-radius: 8px;
+    padding: 8px 12px !important;
+    margin-bottom: 12px !important;
+}
+
+.custom-model-input {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    transition: all 0.2s ease;
+}
+
+.custom-model-input:focus {
+    outline: none;
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+.custom-model-input::placeholder {
+    color: #94a3b8;
+}
+
+/* Disabled state for checkboxes in custom mode */
+.checkbox-item input[type="checkbox"]:disabled + label {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.checkbox-item input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+}

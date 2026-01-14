@@ -7,12 +7,14 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"air_router/db"
 	"air_router/models"
 	"air_router/utils"
+	"air_router/utils/common"
 )
 
 // ModelInfo represents a model information
@@ -21,6 +23,8 @@ type ModelInfo struct {
 	Object                 string   `json:"object"`
 	Created                int64    `json:"created"`
 	OwnedBy                string   `json:"owned_by"`
+	Type                   string   `json:"type,omitempty"`
+	DisplayName            string   `json:"display_name,omitempty"`
 	SupportedEndpointTypes []string `json:"supported_endpoint_types"`
 	CompatibleProviders    []string `json:"compatible_providers,omitempty"`
 }
@@ -49,21 +53,21 @@ var GlobalModelInfoCache = &ModelInfoCache{
 }
 
 // StartModelsCacheTask starts a background task to periodically refresh models cache
-func StartModelsCacheTask(accountDB *db.AccountDB) {
+func StartModelsCacheTask(accountDB *db.AccountDB, modelDB *db.ModelDB) {
 	// Initial fetch
-	RefreshModelsCache(accountDB)
+	RefreshModelsCache(accountDB, modelDB)
 
 	// Refresh every 6 hours
 	ticker := time.NewTicker(6 * time.Hour)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		RefreshModelsCache(accountDB)
+		RefreshModelsCache(accountDB, modelDB)
 	}
 }
 
 // RefreshModelsCache fetches models from all enabled accounts and updates the cache
-func RefreshModelsCache(accountDB *db.AccountDB) {
+func RefreshModelsCache(accountDB *db.AccountDB, modelDB *db.ModelDB) {
 	log.Println("[ModelsCache] Starting cache refresh...")
 
 	// Get all enabled accounts
@@ -105,6 +109,8 @@ func RefreshModelsCache(accountDB *db.AccountDB) {
 					OwnedBy:                model.OwnedBy,
 					SupportedEndpointTypes: model.SupportedEndpointTypes,
 					CompatibleProviders:    model.CompatibleProviders,
+					Type:                   model.Type,
+					DisplayName:            model.DisplayName,
 				}
 			}
 		}
@@ -189,7 +195,16 @@ type ModelsResponse struct {
 func GetAccountsForModel(modelID string) []models.Account {
 	GlobalModelsCache.mu.RLock()
 	defer GlobalModelsCache.mu.RUnlock()
-	return GlobalModelsCache.models[modelID]
+
+	accounts, exists := GlobalModelsCache.models[modelID]
+	if !exists || len(accounts) == 0 {
+		return []models.Account{}
+	}
+
+	// Return a copy to avoid concurrent access issues
+	result := make([]models.Account, len(accounts))
+	copy(result, accounts)
+	return result
 }
 
 // GetAllModels returns all models (for debug routes)
@@ -225,4 +240,93 @@ func GetAllAccounts() []models.Account {
 		result = append(result, acc)
 	}
 	return result
+}
+
+// GetRandomModelIDByPattern returns a random model ID based on pattern matching
+// Supports patterns:
+// - "*" - matches any model
+// - "prefix*" - matches models starting with prefix
+// - "*suffix" - matches models ending with suffix
+// - "*keyword*" - matches models containing keyword
+// - "exact-id" - exact match (no asterisk)
+// Returns error if pattern matching fails to find any models
+func GetRandomModelIDByPattern(pattern string) (string, error) {
+	GlobalModelsCache.mu.RLock()
+	defer GlobalModelsCache.mu.RUnlock()
+
+	if len(pattern) == 0 {
+		return "", fmt.Errorf("pattern cannot be empty")
+	}
+
+	if len(GlobalModelsCache.models) == 0 {
+		return "", fmt.Errorf("no models available in cache")
+	}
+
+	// Check if pattern contains asterisk
+	hasAsterisk := strings.Contains(pattern, "*")
+
+	// No asterisk - exact match
+	if !hasAsterisk {
+		if _, exists := GlobalModelsCache.models[pattern]; exists {
+			return pattern, nil
+		}
+		return "", fmt.Errorf("model '%s' not found in cache", pattern)
+	}
+
+	// Parse pattern with asterisk
+	trimmed := strings.Trim(pattern, "*")
+
+	// Check for invalid patterns (asterisk in the middle)
+	if strings.Contains(trimmed, "*") {
+		return "", fmt.Errorf("pattern '%s' is invalid: asterisk (*) can only be at the beginning or end", pattern)
+	}
+
+	// Special case: "*" matches any model
+	if pattern == "*" {
+		return getRandomModelFromCache(), nil
+	}
+
+	// Empty content between asterisks (e.g., "**")
+	if len(trimmed) == 0 {
+		return "", fmt.Errorf("pattern '%s' is invalid: must have content between asterisks", pattern)
+	}
+
+	// Determine match type
+	keyword := strings.ToLower(trimmed)
+
+	// Find matching models
+	var matches []string
+	for modelID := range GlobalModelsCache.models {
+		if strings.Contains(strings.ToLower(modelID), keyword) {
+			matches = append(matches, modelID)
+		}
+	}
+
+	if len(matches) == 0 {
+		return "", fmt.Errorf("no models found matching pattern '%s'", pattern)
+	}
+
+	if len(matches) == 1 {
+		return matches[0], nil
+	}
+
+	index := common.GetRandomIndex(len(matches))
+	return matches[index], nil
+}
+
+// getRandomModelFromCache returns a random model ID from cache
+func getRandomModelFromCache() string {
+	if len(GlobalModelsCache.models) == 1 {
+		for modelID := range GlobalModelsCache.models {
+			return modelID
+		}
+	}
+
+	allModels := make([]string, 0, len(GlobalModelsCache.models))
+	for modelID := range GlobalModelsCache.models {
+		allModels = append(allModels, modelID)
+	}
+
+	index := common.GetRandomIndex(len(allModels))
+	return allModels[index]
 }

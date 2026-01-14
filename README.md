@@ -10,58 +10,41 @@ This project acts as a transparent proxy server for OpenAI-compatible AI APIs. I
 
 - **Multi-Account Management**: Store and manage API credentials for multiple AI service accounts
 - **Model Discovery**: Automatically queries each account's `/v1/models` endpoint to discover available models
+- **All-in-One Mode**: Create custom model aliases that map to actual provider models with intelligent routing
+  - Support wildcard patterns (e.g., `deepseek*`, `glm*`, `*`)
+  - Automatic load balancing across multiple associated models
+  - Custom model ID mapping for unified API access
 - **Request Routing**: Routes API requests to accounts that support the requested model
 - **Load Balancing**: Implements retry logic with random account selection
-- **Claude Filtering**: Optionally filters out models containing "claude" in their names
-- **Web UI**: Bilingual interface supporting English and Chinese
-- **Debug Interface**: View which accounts support which models
-
-## Architecture
-
-### Backend (Go)
-- **Framework**: Gin Web Framework
-- **Database**: SQLite
-- **Structure**:
-  - `handlers/` - HTTP request handlers
-  - `services/` - Business logic for proxy routing
-  - `cache/` - In-memory model-to-account mapping cache
-  - `utils/` - HTTP utilities
-  - `models/` - Data structures
-  - `db/` - Database operations
-
-### Frontend (Vanilla HTML/JS)
-- Apple-style UI design
-- Modal-based forms for account management
-- Toast notifications
-- Masonry grid layout for account cards
-
-## API Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/`, `/debug` | Web interface |
-| GET | `/v1/models` | List available models |
-| ANY | `/v1/*` | Proxy API requests |
-| GET | `/api/accounts` | List accounts |
-| POST | `/api/accounts` | Create account |
-| PUT | `/api/accounts/:id` | Update account |
-| DELETE | `/api/accounts/:id` | Delete account |
-| PATCH | `/api/accounts/:id` | Toggle enabled state |
-| GET | `/api/debug/models` | Debug model mappings |
-| POST | `/api/debug/models/reload` | Refresh cache |
+- **Web UI**: Bilingual interface (English/Chinese) with dual-tab management
+  - **Provider Tab**: Manage AI service accounts and credentials
+  - **Model Tab**: Configure custom model aliases and associations
+- **Debug Interface**: View model-to-account mappings and cache status
 
 ## Environment Variables
 
-- `DISABLE_CLAUDE`: Filter out models containing "claude" (default: true)
-- `X-Enable-Claude` header: Override DISABLE_CLAUDE for specific requests
+- `USE_ALL_IN_ONE`: Enable all-in-one mode (default: `true`)
+- `DISABLE_CLAUDE`: Filter out Claude models (default: `true`)
 
 ## Building & Running
 
 ```bash
 cd backend
 go build -o air_router
-./air_router -config ./data -port 8080
+./air_router -config ./data -port 8080 -web-port 9000 -path ../frontend
 ```
+
+**Command-line Flags**:
+- `-config`: Directory for data files (default: `./data`)
+- `-path`: Path to frontend directory (default: `../frontend`)
+- `-port`: Proxy API port (default: `8080`)
+- `-web-port`: Web interface port (default: `9000`)
+
+## Usage
+
+1. **Add Providers**: Configure AI service accounts with API keys
+2. **Create Models**: Define custom model aliases with associated provider models
+3. **Use Proxy**: Send requests to `http://localhost:8080/v1/chat/completions` with your custom model ID
 
 ## License
 

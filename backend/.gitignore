@@ -19,5 +19,6 @@ app.log
 
 # Go build files
 binary
+air_router
 *.exe
 *.out

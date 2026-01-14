@@ -31,7 +31,8 @@ func InitDB(dbPath string) (*sql.DB, error) {
 
 // createTables creates all necessary tables in the database
 func createTables(conn *sql.DB) error {
-	createTableQuery := `
+	// Create accounts table
+	createAccountsTableQuery := `
 	CREATE TABLE IF NOT EXISTS accounts (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT NOT NULL,
@@ -43,7 +44,22 @@ func createTables(conn *sql.DB) error {
 		updated_at INTEGER NOT NULL DEFAULT 0
 	);`
 
-	if _, err := conn.Exec(createTableQuery); err != nil {
+	if _, err := conn.Exec(createAccountsTableQuery); err != nil {
+		return err
+	}
+
+	// Create models table
+	createModelsTableQuery := `
+	CREATE TABLE IF NOT EXISTS models (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		model_id TEXT NOT NULL UNIQUE,
+		ass_model_ids TEXT, -- JSON array of associated model IDs
+		provider TEXT NOT NULL, -- chat, claude, codex, gemini
+		enabled BOOLEAN NOT NULL DEFAULT true,
+		updated_at INTEGER NOT NULL DEFAULT 0
+	);`
+
+	if _, err := conn.Exec(createModelsTableQuery); err != nil {
 		return err
 	}
 

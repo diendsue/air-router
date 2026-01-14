@@ -2,14 +2,55 @@ package db
 
 import (
 	"air_router/models"
+	"air_router/utils/common"
 	"database/sql"
 	"fmt"
-	"time"
 )
 
 // AccountDB represents the database operations for accounts
 type AccountDB struct {
 	DB *sql.DB
+}
+
+// scanAccounts scans account rows from the database
+func scanAccounts(rows *sql.Rows) ([]models.Account, error) {
+	defer rows.Close()
+
+	var accounts []models.Account
+	for rows.Next() {
+		var account models.Account
+		err := rows.Scan(&account.ID, &account.Name, &account.BaseURL, &account.APIKey, &account.Enabled, &account.ClaudeAvailable, &account.Ext, &account.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		accounts = append(accounts, account)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return accounts, nil
+}
+
+// buildPaginatedQuery builds a paginated query with optional search
+func buildPaginatedQuery(baseQuery string, search string, page, pageSize int) (string, []interface{}) {
+	var args []interface{}
+	query := baseQuery
+
+	if search != "" {
+		searchPattern := "%" + search + "%"
+		query += ` WHERE name LIKE ? ORDER BY id DESC`
+		args = append(args, searchPattern)
+	} else {
+		query += ` ORDER BY id DESC`
+	}
+
+	offset := (page - 1) * pageSize
+	query += ` LIMIT ? OFFSET ?`
+	args = append(args, pageSize, offset)
+
+	return query, args
 }
 
 // AccountNameExists checks if an account with the given name already exists
@@ -45,11 +86,8 @@ func (a *AccountDB) CreateAccount(account models.Account) (int64, error) {
 		return 0, fmt.Errorf("account with name '%s' already exists", account.Name)
 	}
 
-	// Set updated_at to current time in milliseconds
-	updatedAt := time.Now().UnixMilli()
-
 	query := `INSERT INTO accounts (name, base_url, api_key, enabled, claude_available, ext, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`
-	result, err := a.DB.Exec(query, account.Name, account.BaseURL, account.APIKey, account.Enabled, account.ClaudeAvailable, account.Ext, updatedAt)
+	result, err := a.DB.Exec(query, account.Name, account.BaseURL, account.APIKey, account.Enabled, account.ClaudeAvailable, account.Ext, common.GetCurrentTimestamp())
 	if err != nil {
 		return 0, err
 	}
@@ -69,19 +107,7 @@ func (a *AccountDB) GetAccounts() ([]models.Account, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	var accounts []models.Account
-	for rows.Next() {
-		var account models.Account
-		err := rows.Scan(&account.ID, &account.Name, &account.BaseURL, &account.APIKey, &account.Enabled, &account.ClaudeAvailable, &account.Ext, &account.UpdatedAt)
-		if err != nil {
-			return nil, err
-		}
-		accounts = append(accounts, account)
-	}
-
-	return accounts, nil
+	return scanAccounts(rows)
 }
 
 // GetEnabledAccounts retrieves all enabled accounts from the database
@@ -91,19 +117,7 @@ func (a *AccountDB) GetEnabledAccounts() ([]models.Account, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	var accounts []models.Account
-	for rows.Next() {
-		var account models.Account
-		err := rows.Scan(&account.ID, &account.Name, &account.BaseURL, &account.APIKey, &account.Enabled, &account.ClaudeAvailable, &account.Ext, &account.UpdatedAt)
-		if err != nil {
-			return nil, err
-		}
-		accounts = append(accounts, account)
-	}
-
-	return accounts, nil
+	return scanAccounts(rows)
 }
 
 // GetAccount retrieves a specific account by ID
@@ -129,65 +143,40 @@ func (a *AccountDB) UpdateAccount(account models.Account) error {
 		return fmt.Errorf("account with name '%s' already exists", account.Name)
 	}
 
-	// Set updated_at to current time in milliseconds
-	updatedAt := time.Now().UnixMilli()
-
 	query := `UPDATE accounts SET name = ?, base_url = ?, api_key = ?, enabled = ?, claude_available = ?, ext = ?, updated_at = ? WHERE id = ?`
-	_, err = a.DB.Exec(query, account.Name, account.BaseURL, account.APIKey, account.Enabled, account.ClaudeAvailable, account.Ext, updatedAt, account.ID)
+	_, err = a.DB.Exec(query, account.Name, account.BaseURL, account.APIKey, account.Enabled, account.ClaudeAvailable, account.Ext, common.GetCurrentTimestamp(), account.ID)
 	return err
 }
 
 // GetPaginatedAccounts retrieves accounts with pagination and optional search by name
 func (a *AccountDB) GetPaginatedAccounts(page, pageSize int, search string) ([]models.Account, int, error) {
-	// Build query with optional search condition
-	countQuery := `SELECT COUNT(*) FROM accounts`
-	query := `SELECT id, name, base_url, api_key, enabled, claude_available, ext, updated_at FROM accounts`
-	var args []interface{}
-
-	if search != "" {
-		searchPattern := "%" + search + "%"
-		countQuery += ` WHERE name LIKE ?`
-		query += ` WHERE name LIKE ? ORDER BY id DESC`
-		args = append(args, searchPattern)
-	} else {
-		query += ` ORDER BY id DESC`
-	}
-
 	// Get total count
 	var total int
-	if len(args) > 0 {
-		err := a.DB.QueryRow(countQuery, args...).Scan(&total)
-		if err != nil {
-			return nil, 0, err
-		}
-	} else {
-		err := a.DB.QueryRow(countQuery).Scan(&total)
-		if err != nil {
-			return nil, 0, err
-		}
+	countQuery := `SELECT COUNT(*) FROM accounts`
+	countArgs := []interface{}{}
+
+	if search != "" {
+		countQuery += ` WHERE name LIKE ?`
+		countArgs = append(countArgs, "%"+search+"%")
 	}
 
-	// Calculate offset
-	offset := (page - 1) * pageSize
+	err := a.DB.QueryRow(countQuery, countArgs...).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	// Get paginated accounts
-	query += ` LIMIT ? OFFSET ?`
-	args = append(args, pageSize, offset)
+	baseQuery := `SELECT id, name, base_url, api_key, enabled, claude_available, ext, updated_at FROM accounts`
+	query, args := buildPaginatedQuery(baseQuery, search, page, pageSize)
 
 	rows, err := a.DB.Query(query, args...)
 	if err != nil {
 		return nil, 0, err
 	}
-	defer rows.Close()
 
-	var accounts []models.Account
-	for rows.Next() {
-		var account models.Account
-		err := rows.Scan(&account.ID, &account.Name, &account.BaseURL, &account.APIKey, &account.Enabled, &account.ClaudeAvailable, &account.Ext, &account.UpdatedAt)
-		if err != nil {
-			return nil, 0, err
-		}
-		accounts = append(accounts, account)
+	accounts, err := scanAccounts(rows)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	return accounts, total, nil
@@ -212,8 +201,7 @@ func (a *AccountDB) ToggleAccount(id int) error {
 
 	// Toggle the status and update updated_at
 	newEnabled := !enabled
-	updatedAt := time.Now().UnixMilli()
 	updateQuery := `UPDATE accounts SET enabled = ?, updated_at = ? WHERE id = ?`
-	_, err = a.DB.Exec(updateQuery, newEnabled, updatedAt, id)
+	_, err = a.DB.Exec(updateQuery, newEnabled, common.GetCurrentTimestamp(), id)
 	return err
 }

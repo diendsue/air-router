@@ -9,13 +9,24 @@ import (
 	"strings"
 
 	"air_router/cache"
+	"air_router/db"
 	"air_router/models"
+	"air_router/utils/common"
 
 	"github.com/gin-gonic/gin"
 )
 
 // HandleModels handles GET /v1/models (returns cached model list)
-func HandleModels(c *gin.Context) {
+func HandleModels(c *gin.Context, modelDB *db.ModelDB) {
+	// Check USE_ALL_IN_ONE environment variable using common function
+	useAllInOne := common.GetEnvOrDefault("USE_ALL_IN_ONE", "true")
+
+	if useAllInOne == "true" {
+		// New logic for all-in-one mode
+		handleAllInOneModels(c, modelDB)
+		return
+	}
+
 	// Check if this is a Claude API request (X-Api-Key header present)
 	if c.GetHeader("X-Api-Key") != "" {
 		log.Printf("[Models] Claude API detected (X-Api-Key present)")
@@ -27,20 +38,77 @@ func HandleModels(c *gin.Context) {
 	handleOpenAIModels(c)
 }
 
-// handleClaudeModels handles Claude API requests (X-Api-Key present)
-func handleClaudeModels(c *gin.Context) {
-	claudeAccounts := filterClaudeAvailableAccounts()
-	if len(claudeAccounts) == 0 {
-		log.Printf("[Models] No claude_available accounts found")
-		c.JSON(http.StatusOK, gin.H{
-			"data":    []cache.ModelInfo{},
-			"object":  "list",
-			"success": true,
-		})
+// handleAllInOneModels handles models request in all-in-one mode
+func handleAllInOneModels(c *gin.Context, modelDB *db.ModelDB) {
+	// Check if X-Api-Key header is present to determine provider
+	if c.GetHeader("X-Api-Key") != "" {
+		log.Printf("[Models] All-in-one mode: Claude API detected (X-Api-Key present)")
+		handleAllInOneClaudeModels(c, modelDB)
 		return
 	}
-	log.Printf("[Models] Found %d claude_available accounts", len(claudeAccounts))
 
+	log.Printf("[Models] All-in-one mode: Chat API detected (no X-Api-Key)")
+	handleAllInOneChatModels(c, modelDB)
+}
+
+// handleAllInOneClaudeModels handles Claude models in all-in-one mode
+func handleAllInOneClaudeModels(c *gin.Context, modelDB *db.ModelDB) {
+	modelList := buildAllInOneModelList(models.ProviderClaude, modelDB)
+	log.Printf("[Models] All-in-one response: %d Claude models", len(modelList))
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":    modelList,
+		"object":  "list",
+		"success": true,
+	})
+}
+
+// handleAllInOneChatModels handles Chat models in all-in-one mode
+func handleAllInOneChatModels(c *gin.Context, modelDB *db.ModelDB) {
+	modelList := buildAllInOneModelList(models.ProviderChat, modelDB)
+	log.Printf("[Models] All-in-one response: %d Chat models", len(modelList))
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":    modelList,
+		"object":  "list",
+		"success": true,
+	})
+}
+
+// buildAllInOneModelList builds and returns models for all-in-one mode
+func buildAllInOneModelList(provider models.Provider, modelDB *db.ModelDB) []cache.ModelInfo {
+	// In all-in-one mode, we query the database directly for enabled models
+	// instead of using the cached provider models
+
+	modelList := make([]cache.ModelInfo, 0)
+
+	// Get enabled models for the specific provider from the database
+	enabledModels, err := modelDB.GetEnabledModelsByProvider(provider)
+	if err != nil {
+		log.Printf("[Models] Error getting enabled models for provider %s from database: %v", provider, err)
+		return modelList
+	}
+
+	// Create pseudo model entries
+	for _, model := range enabledModels {
+		modelList = append(modelList, cache.ModelInfo{
+			ID:                     model.ModelID,
+			Object:                 "model",
+			Created:                0,
+			OwnedBy:                "air_router",
+			SupportedEndpointTypes: []string{"openai"},
+			CompatibleProviders:    []string{},
+			Type:                   "",
+			DisplayName:            "",
+		})
+	}
+
+	sortModelsByID(modelList)
+	return modelList
+}
+
+// handleClaudeModels handles Claude API requests (X-Api-Key present)
+func handleClaudeModels(c *gin.Context) {
 	modelList := buildClaudeModelList()
 	log.Printf("[Models] Response: %d Claude models for Claude API", len(modelList))
 
@@ -89,16 +157,22 @@ func filterClaudeAvailableAccounts() []models.Account {
 	return claudeAccounts
 }
 
+var claudeModels = []string{"claude", "glm"}
+
 // isClaudeModel checks if a model ID indicates a Claude model
 func isClaudeModel(modelID string) bool {
-	return strings.Contains(strings.ToLower(modelID), "claude")
+	for _, modelKey := range claudeModels {
+		if strings.Contains(modelID, modelKey) {
+			return true
+		}
+	}
+	return false
 }
 
 // buildClaudeModelList builds and returns Claude models from claude_available accounts
 func buildClaudeModelList() []cache.ModelInfo {
 	modelInfos := cache.GetAllModelInfos()
-	var modelList []cache.ModelInfo
-
+	modelList := make([]cache.ModelInfo, 0)
 	for _, modelInfo := range modelInfos {
 		if !isClaudeModel(modelInfo.ID) {
 			continue
@@ -116,6 +190,8 @@ func buildClaudeModelList() []cache.ModelInfo {
 			OwnedBy:                strings.Join(accountNames, ", "),
 			SupportedEndpointTypes: modelInfo.SupportedEndpointTypes,
 			CompatibleProviders:    modelInfo.CompatibleProviders,
+			Type:                   modelInfo.Type,
+			DisplayName:            modelInfo.DisplayName,
 		})
 	}
 
@@ -160,6 +236,8 @@ func buildOpenAIModelList(disableClaude bool) []cache.ModelInfo {
 			OwnedBy:                ownedBy,
 			SupportedEndpointTypes: modelInfo.SupportedEndpointTypes,
 			CompatibleProviders:    modelInfo.CompatibleProviders,
+			Type:                   modelInfo.Type,
+			DisplayName:            modelInfo.DisplayName,
 		})
 	}
 

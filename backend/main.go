@@ -59,11 +59,14 @@ func main() {
 	// Initialize account database handler
 	accountDB := &air_router_db.AccountDB{DB: dbConn}
 
+	// Initialize model database handler
+	modelDB := &air_router_db.ModelDB{DB: dbConn}
+
 	// Initialize handlers
-	handlers := air_router_handlers.NewHandlers(absFrontendPath, accountDB)
+	handlers := air_router_handlers.NewHandlers(absFrontendPath, accountDB, modelDB)
 
 	// Setup routers
-	webRouter := air_router_handlers.SetupWebRouter(handlers.IndexHandler, handlers.AccountHandler, handlers.ProxyHandler, absFrontendPath)
+	webRouter := air_router_handlers.SetupWebRouter(handlers.IndexHandler, handlers.AccountHandler, handlers.ModelHandler, handlers.ProxyHandler, absFrontendPath)
 	proxyRouter := air_router_handlers.SetupProxyRouter(handlers.ProxyHandler)
 
 	// Start web server

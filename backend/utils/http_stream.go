@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"air_router/constants"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,7 +21,7 @@ func StreamResponse(c *gin.Context, resp *http.Response) error {
 	c.Status(resp.StatusCode)
 
 	// Stream with small buffer for real-time response
-	buf := make([]byte, 4096)
+	buf := make([]byte, constants.StreamBufferSize)
 	for {
 		n, err := resp.Body.Read(buf)
 		if n > 0 {

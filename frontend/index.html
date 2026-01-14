@@ -4,6 +4,7 @@
     <title data-i18n="accountManagement">账户管理</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/language-switcher.css">
+    <link rel="stylesheet" href="/static/css/model.css">
 </head>
 <body>
     <div class="container">
@@ -35,6 +36,14 @@
             </div>
         </header>
 
+        <!-- Tab navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="accounts" data-i18n="tabAccounts">账户管理</button>
+            <button class="tab-btn" data-tab="allinone" data-i18n="tabAllInOne">All in One</button>
+        </div>
+
+        <!-- Tab: Accounts -->
+        <div id="tab-accounts" class="tab-content active">
         <!-- Search and action bar -->
         <div class="search-bar">
             <div class="search-input-wrapper">
@@ -51,6 +60,28 @@
         <!-- Pagination -->
         <div id="pagination" class="pagination">
             <!-- Pagination buttons will be loaded here dynamically -->
+        </div>
+        </div>
+
+        <!-- Tab: All in One -->
+        <div id="tab-allinone" class="tab-content">
+            <!-- Search and action bar -->
+            <div class="search-bar">
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchModelInput" class="search-input" data-i18n-placeholder="searchModel" placeholder="搜索模型名称...">
+                    <button id="clearSearchModel" class="clear-search-btn">×</button>
+                </div>
+                <button id="addModelBtn" class="btn btn-add" data-i18n="addModel">+ 添加模型</button>
+            </div>
+
+            <div id="modelsGrid" class="accounts-grid">
+                <!-- Model cards will be loaded here dynamically -->
+            </div>
+
+            <!-- Pagination -->
+            <div id="modelPagination" class="pagination">
+                <!-- Pagination buttons will be loaded here dynamically -->
+            </div>
         </div>
     </div>
 
@@ -96,9 +127,55 @@
         </div>
     </div>
 
+    <!-- Modal for adding/editing models -->
+    <div id="modelModal" class="modal model">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modelModalTitle" data-i18n="addModelTitle">添加模型</h2>
+                <button class="close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="modelForm">
+                    <input type="hidden" id="modelId">
+                    <div class="form-group">
+                        <label for="model_id" data-i18n="modelId">模型ID</label>
+                        <input type="text" id="model_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="provider" data-i18n="provider">For</label>
+                        <select id="provider" required>
+                            <option value="chat" data-i18n="providerChat">Chat</option>
+                            <option value="claude" data-i18n="providerClaude">Claude</option>
+                            <option value="codex" data-i18n="providerCodex" disabled>Codex</option>
+                            <option value="gemini" data-i18n="providerGemini" disabled>Gemini</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ass_model_ids" data-i18n="assModelIds">关联模型</label>
+                        <div id="assModelIdsContainer">
+                            <!-- Associated model checkboxes will be loaded here dynamically -->
+                        </div>
+                    </div>
+                    <div class="form-group form-group-toggle">
+                        <div class="toggle-label" data-toggle="model_enabled" data-i18n="modelEnabled">启用模型</div>
+                        <div class="toggle-switch" data-toggle="model_enabled">
+                            <input type="checkbox" id="model_enabled" checked>
+                            <span class="toggle-slider"></span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelModelBtn" class="btn btn-secondary" data-i18n="cancel">取消</button>
+                <button id="saveModelBtn" class="btn" data-i18n="saveModel">保存模型</button>
+            </div>
+        </div>
+    </div>
+
     <script src="/static/js/i18n.js"></script>
     <script src="/static/i18n/zh-CN.js"></script>
     <script src="/static/i18n/en.js"></script>
     <script src="/static/js/script.js"></script>
+    <script src="/static/js/models.js"></script>
 </body>
 </html>
